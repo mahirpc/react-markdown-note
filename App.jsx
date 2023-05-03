@@ -8,14 +8,7 @@ import { notesCollection, db } from "./firebase"
 
 export default function App() {
     const [notes, setNotes] = React.useState([])
-    const [currentNoteId, setCurrentNoteId] = React.useState(
-        (notes[0]?.id) || ""
-    )
     
-    const currentNote = 
-        notes.find(note => note.id === currentNoteId) 
-        || notes[0]
-
     React.useEffect(() => {
         // localStorage.setItem("notes", JSON.stringify(notes))
         const unsubscribe = onSnapshot(notesCollection, (snapshot) => {
@@ -23,12 +16,20 @@ export default function App() {
             const noteArr = snapshot.docs.map(doc => ({
                 ...doc.data(),
                 id: doc.id
-                })
-              )
-              setNotes(noteArr)
             })
-            return unsubscribe
+            )
+            setNotes(noteArr)
+        })
+        return unsubscribe
     }, [])
+
+    const [currentNoteId, setCurrentNoteId] = React.useState(
+        (notes[0]?.id) || ""
+    )
+    
+    const currentNote = 
+        notes.find(note => note.id === currentNoteId) 
+        || notes[0]
 
     async function createNewNote() {
         const newNote = {
@@ -79,14 +80,12 @@ export default function App() {
                             newNote={createNewNote}
                             deleteNote={deleteNote}
                         />
-                        {
-                            currentNoteId &&
-                            notes.length > 0 &&
-                            <Editor
-                                currentNote={currentNote}
-                                updateNote={updateNote}
-                            />
-                        }
+                        
+                        <Editor
+                            currentNote={currentNote}
+                            updateNote={updateNote}
+                        />
+                    
                     </Split>
                     :
                     <div className="no-notes">
