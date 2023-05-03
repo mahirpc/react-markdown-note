@@ -3,8 +3,8 @@ import Sidebar from "./components/Sidebar"
 import Editor from "./components/Editor"
 import Split from "react-split"
 import { nanoid } from "nanoid"
-import { onSnapshot } from "firebase/firestore"
-import { notesCollection } from "./firebase"
+import { onSnapshot, addDoc, doc, deleteDoc } from "firebase/firestore"
+import { notesCollection, db } from "./firebase"
 
 export default function App() {
     const [notes, setNotes] = React.useState([])
@@ -30,13 +30,13 @@ export default function App() {
             return unsubscribe
     }, [])
 
-    function createNewNote() {
+    async function createNewNote() {
         const newNote = {
-            id: nanoid(),
             body: "# Type your markdown note's title here"
         }
-        setNotes(prevNotes => [newNote, ...prevNotes])
-        setCurrentNoteId(newNote.id)
+        const newNoteRef = await addDoc(notesCollection, newNote)
+        // setNotes(prevNotes => [newNote, ...prevNotes])
+        setCurrentNoteId(newNoteRef.id)
     }
 
     function updateNote(text) {
@@ -55,9 +55,11 @@ export default function App() {
         })
     }
 
-    function deleteNote(event, noteId) {
-        event.stopPropagation()
-        setNotes(oldNotes => oldNotes.filter(note => note.id !== noteId))
+    async function deleteNote(noteId) {
+        // event.stopPropagation()
+        // setNotes(oldNotes => oldNotes.filter(note => note.id !== noteId))
+        const docRef = doc(db, "notes", noteId)
+        await deleteDoc(docRef)
     }
 
     return (
